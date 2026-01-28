@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الاختبار الإلكتروني | DRS 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Tajawal', sans-serif; background: #f8fafc; }
+        .question-card { background: white; border-radius: 1.5rem; padding: 2rem; margin-bottom: 1.5rem; border: 2px solid transparent; transition: all 0.3s; }
+        .question-card:has(input:checked) { border-color: #1e3a8a; background: #f0f4ff; }
+        .option-label { cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 10px; }
+        .option-label:hover { background: rgba(30, 58, 138, 0.05); }
+    </style>
+</head>
+<body class="p-4 md:p-10">
+
+    <div class="max-w-3xl mx-auto">
+        <header class="bg-white p-6 rounded-[2rem] shadow-sm mb-8 flex justify-between items-center border-b-4 border-blue-900">
+            <div>
+                <h1 class="text-xl font-black text-blue-900">اختبار مستوى الذكاء والقدرات</h1>
+                <p class="text-xs text-gray-500">منظومة الراوي الرقمية - التقييم الدوري</p>
+            </div>
+            <div id="timer" class="bg-red-50 text-red-600 font-bold px-4 py-2 rounded-xl border border-red-100">
+                05:00
+            </div>
+        </header>
+
+        <div id="auth-section" class="bg-white p-8 rounded-[2rem] shadow-xl text-center">
+            <h2 class="text-lg font-bold mb-4">برجاء إدخال الرقم القومي لبدء الاختبار</h2>
+            <input type="text" id="studentID" placeholder="الرقم القومي المكون من 14 رقم" maxlength="14" class="w-full p-4 bg-gray-50 rounded-2xl mb-4 outline-none text-center font-mono">
+            <button onclick="startExam()" class="w-full bg-blue-900 text-white font-bold py-4 rounded-2xl hover:bg-blue-800 transition">بدء الاختبار الآن 🚀</button>
+        </div>
+
+        <div id="exam-section" class="hidden">
+            <form id="examForm">
+                <div class="question-card shadow-sm">
+                    <p class="font-bold text-lg mb-4 text-blue-900">1. ما هو ناتج جمع 15 + 25؟</p>
+                    <div class="space-y-2">
+                        <label class="option-label"><input type="radio" name="q1" value="30"> 30</label>
+                        <label class="option-label"><input type="radio" name="q1" value="40"> 40</label>
+                        <label class="option-label"><input type="radio" name="q1" value="50"> 50</label>
+                    </div>
+                </div>
+
+                <div class="question-card shadow-sm">
+                    <p class="font-bold text-lg mb-4 text-blue-900">2. أي من البرامج التالية يُستخدم في البرمجة؟</p>
+                    <div class="space-y-2">
+                        <label class="option-label"><input type="radio" name="q2" value="Python"> Python</label>
+                        <label class="option-label"><input type="radio" name="q2" value="Word"> Microsoft Word</label>
+                        <label class="option-label"><input type="radio" name="q2" value="Paint"> الرسام</label>
+                    </div>
+                </div>
+
+                <div class="question-card shadow-sm">
+                    <p class="font-bold text-lg mb-4 text-blue-900">3. تقع مدرسة الراوي في مدينة:</p>
+                    <div class="space-y-2">
+                        <label class="option-label"><input type="radio" name="q3" value="Cairo"> القاهرة</label>
+                        <label class="option-label"><input type="radio" name="q3" value="Alex"> الإسكندرية</label>
+                        <label class="option-label"><input type="radio" name="q3" value="Aswan"> أسوان</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-5 rounded-[2rem] shadow-xl hover:bg-emerald-700 transition mb-20">إنهاء الاختبار ورصد الدرجة ✔️</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAREfWSSXUefzNBHw5RPhb-TBL3vl3C1Z8",
+            authDomain: "al-rawi-drs.firebaseapp.com",
+            projectId: "al-rawi-drs",
+            storageBucket: "al-rawi-drs.firebasestorage.app",
+            messagingSenderId: "1090201098998",
+            appId: "1:1090201098998:web:951f39d6e77c855c762ad7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let currentStudentID = "";
+        let currentDocId = "";
+
+        // بدء الاختبار
+        window.startExam = async function() {
+            const idInput = document.getElementById('studentID').value;
+            if (idInput.length < 14) return alert("برجاء إدخال رقم قومي صحيح");
+
+            // التحقق من وجود الطالب في المنظومة
+            const q = query(collection(db, "responses"), where("national_id", "==", idInput));
+            const snap = await getDocs(q);
+
+            if (!snap.empty) {
+                currentStudentID = idInput;
+                currentDocId = snap.docs[0].id;
+                document.getElementById('auth-section').classList.add('hidden');
+                document.getElementById('exam-section').classList.remove('hidden');
+                startTimer();
+            } else {
+                alert("عفواً، هذا الرقم القومي غير مسجل في المنظومة. برجاء التقديم أولاً.");
+            }
+        }
+
+        function startTimer() {
+            let time = 300; // 5 دقائق
+            const display = document.getElementById('timer');
+            const interval = setInterval(() => {
+                let mins = Math.floor(time / 60);
+                let secs = time % 60;
+                display.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                if (--time < 0) {
+                    clearInterval(interval);
+                    submitExam();
+                }
+            }, 1000);
+        }
+
+        document.getElementById('examForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await submitExam();
+        });
+
+        async function submitExam() {
+            const formData = new FormData(document.getElementById('examForm'));
+            let score = 0;
+            
+            // التصحيح التلقائي
+            if (formData.get('q1') === '40') score += 33;
+            if (formData.get('q2') === 'Python') score += 33;
+            if (formData.get('q3') === 'Alex') score += 34;
+
+            // تحديث الدرجة في Firebase
+            const studentRef = doc(db, "responses", currentDocId);
+            await updateDoc(studentRef, {
+                exam_score: score,
+                last_exam_date: new Date()
+            });
+
+            alert(`تم الانتهاء! درجتك هي: ${score}% \n تم ترحيل الدرجة لسجلك الرقمي بنجاح.`);
+            window.location.href = "thank-you.html";
+        }
+    </script>
+</body>
+</html>

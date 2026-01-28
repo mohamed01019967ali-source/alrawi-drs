@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الحضور | منظومة الراوي الرقمية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Tajawal', sans-serif; background: #f4f7fe; }
+        .attendance-card { transition: all 0.3s; }
+        .present { border-right: 8px solid #10b981; }
+        .absent { border-right: 8px solid #ef4444; background: #fef2f2; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="bg-blue-900 text-white p-6 rounded-[2rem] shadow-xl mb-8 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-black">سجل الحضور الذكي</h1>
+                <p id="todayDate" class="text-xs opacity-80"></p>
+            </div>
+            <div class="text-left">
+                <span class="bg-white/20 px-4 py-2 rounded-xl text-sm">إدارة الإسكندرية</span>
+            </div>
+        </header>
+
+        <div class="mb-6">
+            <input type="text" id="searchBox" placeholder="ابحث عن اسم الطالب..." class="w-full p-4 rounded-2xl border-none shadow-sm outline-none focus:ring-2 ring-blue-500">
+        </div>
+
+        <div id="studentList" class="space-y-4 mb-24">
+            <div class="text-center p-10 text-gray-400">جاري تحميل قائمة الطلاب...</div>
+        </div>
+
+        <div class="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-md px-4">
+            <button onclick="saveAttendance()" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-2xl hover:bg-emerald-700 transition active:scale-95 flex justify-center items-center gap-2">
+                <span>اعتماد سجل الحضور لليوم</span>
+                <span id="saveLoader" class="hidden animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAREfWSSXUefzNBHw5RPhb-TBL3vl3C1Z8",
+            authDomain: "al-rawi-drs.firebaseapp.com",
+            projectId: "al-rawi-drs",
+            storageBucket: "al-rawi-drs.firebasestorage.app",
+            messagingSenderId: "1090201098998",
+            appId: "1:1090201098998:web:951f39d6e77c855c762ad7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        document.getElementById('todayDate').innerText = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+        let attendanceData = {};
+
+        // جلب الطلاب المقبولين فقط لتسجيل حضورهم
+        onSnapshot(collection(db, "responses"), (snapshot) => {
+            const list = document.getElementById('studentList');
+            list.innerHTML = "";
+            
+            snapshot.forEach((d) => {
+                const student = d.data();
+                if (student.status === "Approved") {
+                    // افتراضياً الكل حاضر "Present"
+                    attendanceData[d.id] = "حاضر";
+
+                    const card = document.createElement('div');
+                    card.id = `card-${d.id}`;
+                    card.className = "attendance-card bg-white p-5 rounded-2xl shadow-sm flex justify-between items-center present";
+                    card.innerHTML = `
+                        <div>
+                            <p class="font-bold text-gray-800">${student.student_name}</p>
+                            <p class="text-xs text-gray-400">الرقم القومي: ${student.national_id}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="mark('${d.id}', 'غائب')" id="btn-absent-${d.id}" class="px-4 py-2 rounded-xl border-2 border-red-500 text-red-500 font-bold text-sm hover:bg-red-500 hover:text-white transition">غائب</button>
+                            <button onclick="mark('${d.id}', 'حاضر')" id="btn-present-${d.id}" class="px-4 py-2 rounded-xl bg-emerald-500 text-white font-bold text-sm hidden">حاضر ✅</button>
+                        </div>
+                    `;
+                    list.appendChild(card);
+                }
+            });
+        });
+
+        // تغيير الحالة في الواجهة
+        window.mark = (id, status) => {
+            attendanceData[id] = status;
+            const card = document.getElementById(`card-${id}`);
+            const btnAbsent = document.getElementById(`btn-absent-${id}`);
+            const btnPresent = document.getElementById(`btn-present-${id}`);
+
+            if (status === 'غائب') {
+                card.classList.replace('present', 'absent');
+                btnAbsent.classList.add('hidden');
+                btnPresent.classList.remove('hidden');
+            } else {
+                card.classList.replace('absent', 'present');
+                btnAbsent.classList.remove('hidden');
+                btnPresent.classList.add('hidden');
+            }
+        };
+
+        // حفظ الحضور في قاعدة البيانات
+        window.saveAttendance = async () => {
+            const loader = document.getElementById('saveLoader');
+            loader.classList.remove('hidden');
+
+            try {
+                const promises = Object.keys(attendanceData).map(id => {
+                    return updateDoc(doc(db, "responses", id), {
+                        attendance_status: attendanceData[id],
+                        last_attendance_update: new Date()
+                    });
+                });
+
+                await Promise.all(promises);
+                alert("تم اعتماد سجل الحضور بنجاح في منظومة الراوي!");
+            } catch (err) {
+                alert("حدث خطأ أثناء الحفظ");
+            } finally {
+                loader.classList.add('hidden');
+            }
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسليم الكتب | منظومة الراوي الرقمية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Tajawal', sans-serif; background: #fdfdfd; }
+        .book-item { transition: all 0.2s; border: 2px solid #f3f4f6; }
+        .book-item:has(input:checked) { border-color: #059669; background: #ecfdf5; }
+    </style>
+</head>
+<body class="p-4 md:p-10">
+
+    <div class="max-w-2xl mx-auto">
+        <header class="text-center mb-10 bg-white p-8 rounded-[2.5rem] shadow-sm border-b-4 border-emerald-600">
+            <h1 class="text-2xl font-black text-blue-900">منظومة توزيع الكتب المدرسية</h1>
+            <p class="text-gray-500 mt-2">مدرسة الراوي - قسم المخازن الرقمية</p>
+        </header>
+
+        <div class="bg-white p-8 rounded-[2rem] shadow-xl mb-6">
+            <h3 class="font-bold mb-4 text-gray-700">1. أدخل الرقم القومي للطالب (أو امسح الـ QR)</h3>
+            <div class="flex gap-2">
+                <input type="text" id="searchID" placeholder="14 رقم" maxlength="14" class="flex-1 p-4 bg-gray-50 rounded-2xl outline-none border-2 border-transparent focus:border-blue-900 font-mono text-center">
+                <button onclick="fetchStudent()" class="bg-blue-900 text-white px-6 rounded-2xl hover:bg-blue-800 transition">تحقق</button>
+            </div>
+            
+            <div id="studentInfo" class="hidden mt-6 p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                <p class="font-bold text-blue-900" id="resName">الطالب: جاري البحث...</p>
+                <p class="text-xs text-blue-600" id="resStatus">الحالة: معتمد</p>
+            </div>
+        </div>
+
+        <div id="booksSection" class="hidden bg-white p-8 rounded-[2rem] shadow-xl mb-20">
+            <h3 class="font-bold mb-6 text-gray-700">2. اختر الكتب المراد تسليمها</h3>
+            <form id="booksForm" class="space-y-3">
+                <label class="book-item flex items-center justify-between p-4 rounded-2xl cursor-pointer">
+                    <span class="font-bold">كتاب اللغة العربية</span>
+                    <input type="checkbox" name="books" value="اللغة العربية" class="w-6 h-6 accent-emerald-600">
+                </label>
+                <label class="book-item flex items-center justify-between p-4 rounded-2xl cursor-pointer">
+                    <span class="font-bold">كتاب الرياضيات</span>
+                    <input type="checkbox" name="books" value="الرياضيات" class="w-6 h-6 accent-emerald-600">
+                </label>
+                <label class="book-item flex items-center justify-between p-4 rounded-2xl cursor-pointer">
+                    <span class="font-bold">كتاب العلوم</span>
+                    <input type="checkbox" name="books" value="العلوم" class="w-6 h-6 accent-emerald-600">
+                </label>
+                <label class="book-item flex items-center justify-between p-4 rounded-2xl cursor-pointer">
+                    <span class="font-bold">كتاب اللغة الإنجليزية</span>
+                    <input type="checkbox" name="books" value="الإنجليزية" class="w-6 h-6 accent-emerald-600">
+                </label>
+
+                <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-5 rounded-[2rem] shadow-xl hover:bg-emerald-700 transition mt-6">
+                    اعتماد التسليم وتحديث السجل ✔️
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAREfWSSXUefzNBHw5RPhb-TBL3vl3C1Z8",
+            authDomain: "al-rawi-drs.firebaseapp.com",
+            projectId: "al-rawi-drs",
+            storageBucket: "al-rawi-drs.firebasestorage.app",
+            messagingSenderId: "1090201098998",
+            appId: "1:1090201098998:web:951f39d6e77c855c762ad7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let currentDocId = "";
+
+        // جلب بيانات الطالب
+        window.fetchStudent = async function() {
+            const id = document.getElementById('searchID').value;
+            if(id.length < 14) return alert("الرقم القومي غير مكتمل");
+
+            const q = query(collection(db, "responses"), where("national_id", "==", id));
+            const snap = await getDocs(q);
+
+            if(!snap.empty) {
+                const data = snap.docs[0].data();
+                currentDocId = snap.docs[0].id;
+                document.getElementById('resName').innerText = "الطالب: " + data.student_name;
+                document.getElementById('studentInfo').classList.remove('hidden');
+                document.getElementById('booksSection').classList.remove('hidden');
+            } else {
+                alert("الطالب غير موجود أو غير مقبول");
+            }
+        }
+
+        // تسجيل استلام الكتب
+        document.getElementById('booksForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const selectedBooks = Array.from(document.querySelectorAll('input[name="books"]:checked')).map(el => el.value);
+            
+            if(selectedBooks.length === 0) return alert("برجاء اختيار كتاب واحد على الأقل");
+
+            try {
+                const studentRef = doc(db, "responses", currentDocId);
+                await updateDoc(studentRef, {
+                    received_books: selectedBooks,
+                    delivery_date: new Date().toLocaleDateString('ar-EG')
+                });
+
+                alert("تم إثبات استلام الكتب في منظومة الراوي بنجاح!");
+                location.reload();
+            } catch (err) {
+                alert("حدث خطأ أثناء التحديث");
+            }
+        });
+    </script>
+</body>
+</html>

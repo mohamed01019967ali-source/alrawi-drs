@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة الشرف | منظومة الراوي الرقمية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        body { 
+            font-family: 'Tajawal', sans-serif; 
+            background: radial-gradient(circle, #1e3a8a 0%, #0f172a 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .gold-card {
+            background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+            transform: scale(1.1);
+            z-index: 10;
+        }
+        .rank-badge {
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: bold;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body class="p-4 flex flex-col items-center">
+
+    <header class="text-center my-12">
+        <h1 class="text-5xl font-[900] text-yellow-400 mb-2 drop-shadow-2xl uppercase tracking-widest">لوحة شرف الراوي</h1>
+        <p class="text-blue-200 text-lg uppercase tracking-widest">فرسان العلم والمستقبل - لعام 2026</p>
+    </header>
+
+    <div id="podium" class="flex flex-col md:flex-row items-end justify-center gap-8 w-full max-w-5xl mb-20 px-4">
+        <div class="text-center text-blue-300">جاري البحث عن العباقرة...</div>
+    </div>
+
+    <div class="w-full max-w-4xl bg-white/5 backdrop-blur-lg rounded-[2rem] p-8 border border-white/10">
+        <h2 class="text-2xl font-bold mb-6 text-center text-yellow-500">قائمة العشرة الأوائل 🏆</h2>
+        <div id="honorsList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAREfWSSXUefzNBHw5RPhb-TBL3vl3C1Z8",
+            authDomain: "al-rawi-drs.firebaseapp.com",
+            projectId: "al-rawi-drs",
+            storageBucket: "al-rawi-drs.firebasestorage.app",
+            messagingSenderId: "1090201098998",
+            appId: "1:1090201098998:web:951f39d6e77c855c762ad7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // جلب أفضل 10 طلاب بناءً على الدرجة
+        const topQuery = query(collection(db, "responses"), orderBy("exam_score", "desc"), limit(10));
+
+        onSnapshot(topQuery, (snapshot) => {
+            const podium = document.getElementById('podium');
+            const honorsList = document.getElementById('honorsList');
+            podium.innerHTML = "";
+            honorsList.innerHTML = "";
+
+            let students = [];
+            snapshot.forEach(d => students.push(d.data()));
+
+            // ترتيب الأوائل (الثاني - الأول - الثالث) لمنصة التتويج
+            const top3 = [students[1], students[0], students[2]];
+            const colors = ['bg-slate-400', 'gold-card', 'bg-orange-600'];
+            const labels = ['الثاني', 'الأول', 'الثالث'];
+
+            top3.forEach((s, i) => {
+                if(!s) return;
+                const card = document.createElement('div');
+                card.className = `relative w-full md:w-64 p-8 rounded-3xl text-center shadow-2xl animate-float ${colors[i]}`;
+                card.innerHTML = `
+                    <div class="rank-badge ${i==1 ? 'bg-yellow-200 text-yellow-800' : 'bg-white text-blue-900'}">${labels[i]}</div>
+                    <div class="w-24 h-24 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl border-4 border-white/30">👤</div>
+                    <h3 class="font-black text-xl mb-1">${s.student_name.split(' ')[0]}</h3>
+                    <p class="text-sm opacity-90">${s.exam_score}%</p>
+                `;
+                podium.appendChild(card);
+            });
+
+            // إضافة باقي العشرة
+            students.slice(3).forEach((s, i) => {
+                const item = document.createElement('div');
+                item.className = "flex justify-between items-center bg-white/10 p-4 rounded-2xl border border-white/5";
+                item.innerHTML = `
+                    <span class="font-bold">#${i+4} ${s.student_name}</span>
+                    <span class="text-yellow-400 font-mono font-bold">${s.exam_score}%</span>
+                `;
+                honorsList.appendChild(item);
+            });
+
+            // إطلاق الاحتفالات
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        });
+    </script>
+</body>
+</html>

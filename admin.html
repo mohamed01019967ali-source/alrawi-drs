@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة المدير - منظومة الراوي الرقمية (DRS)</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
+        .drs-card { background: white; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body>
+
+    <nav class="bg-blue-900 text-white p-5 shadow-xl text-center">
+        <h1 class="text-2xl font-bold">منظومة الراوي الرقمية (DRS)</h1>
+        <p class="text-sm opacity-80">لوحة تحكم المدير - تسجيل الطلاب</p>
+    </nav>
+
+    <div class="max-w-xl mx-auto mt-10 p-4">
+        <div class="drs-card p-8 border-t-8 border-blue-900">
+            <h2 class="text-xl font-bold text-gray-800 mb-6 border-b pb-4">تسجيل طالب جديد</h2>
+            
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-sm font-bold text-gray-600 mb-2">اسم الطالب رباعي</label>
+                    <input type="text" id="studentName" placeholder="أدخل اسم الطالب رباعي..." 
+                           class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-600 bg-gray-50 transition">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-600 mb-2">الرقم القومي (14 رقم)</label>
+                    <input type="number" id="nationalID" placeholder="29000000000000" 
+                           class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-600 bg-gray-50 transition">
+                </div>
+
+                <button onclick="saveToDRS()" 
+                        class="w-full bg-blue-900 text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-800 shadow-lg transform transition active:scale-95">
+                    حفظ في المنظومة وتوليد QR 💾
+                </button>
+            </div>
+
+            <div id="qrcode-container" class="mt-8 hidden flex flex-col items-center bg-blue-50 p-6 rounded-2xl border-2 border-dashed border-blue-200">
+                <p class="mb-4 font-bold text-blue-900 text-sm">QR Code التقديم لولي الأمر</p>
+                <div id="qrcode" class="bg-white p-2 border shadow-sm"></div>
+                <button onclick="window.print()" class="mt-4 text-xs text-gray-500 underline">طباعة الكود وتعليقه</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // إعدادات Firebase الخاصة بك
+        const firebaseConfig = {
+            apiKey: "AIzaSyAREfWSSXUefzNBHw5RPhb-TBL3vl3C1Z8",
+            authDomain: "al-rawi-drs.firebaseapp.com",
+            projectId: "al-rawi-drs",
+            storageBucket: "al-rawi-drs.firebasestorage.app",
+            messagingSenderId: "1090201098998",
+            appId: "1:1090201098998:web:951f39d6e77c855c762ad7",
+            measurementId: "G-EMP7GCKYD9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // جعل الدالة عالمية ليراها الزر
+        window.saveToDRS = async function() {
+            const name = document.getElementById('studentName').value;
+            const nid = document.getElementById('nationalID').value;
+
+            if(!name || !nid) {
+                alert("برجاء إدخال البيانات كاملة ");
+                return;
+            }
+
+            try {
+                // 1. حفظ البيانات في Firestore
+                await addDoc(collection(db, "students"), {
+                    student_name: name,
+                    national_id: nid,
+                    project: "منظومة الراوي الرقمية (DRS)",
+                    timestamp: new Date()
+                });
+
+                // 2. إظهار حاوية الـ QR ومسح أي كود قديم
+                document.getElementById('qrcode-container').classList.remove('hidden');
+                document.getElementById('qrcode').innerHTML = "";
+
+                // 3. توليد الـ QR Code الجديد
+                // ملاحظة: الرابط هنا مؤقت لحين رفع ملفاتك على استضافة
+                new QRCode(document.getElementById("qrcode"), {
+                    text: "survey.html?id=" + nid, 
+                    width: 160,
+                    height: 160,
+                    colorDark : "#1e3a8a",
+                    colorLight : "#ffffff"
+                });
+
+                alert("تم تسجيل الطالب في DRS وتوليد الكود بنجاح! ✅");
+
+                // تفريغ الخانات
+                document.getElementById('studentName').value = "";
+                document.getElementById('nationalID').value = "";
+
+            } catch (e) {
+                alert("خطأ في الاتصال بالسحابة: " + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
