@@ -12,7 +12,8 @@
         label { display: block; font-weight: bold; margin-bottom: 8px; color: var(--primary); }
         input, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; margin-bottom: 15px; }
         .btn-submit { background-color: var(--secondary); color: white; padding: 15px; border: none; border-radius: 8px; width: 100%; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-submit:hover { background-color: #219150; }
+        .btn-submit:disabled { background-color: #95a5a6; cursor: not-allowed; }
+        .file-label { background: #eef2f3; padding: 10px; border: 1px dashed #7f8c8d; border-radius: 6px; display: block; text-align: center; cursor: pointer; margin-bottom: 15px; }
     </style>
 </head>
 <body>
@@ -23,7 +24,7 @@
         <p style="color: #666;">تسجيل رغبات الطلاب الجدد 2026</p>
     </div>
 
-    <form id="mainForm">
+    <form id="uploadForm">
         <label>اسم الطالب رباعي:</label>
         <input type="text" id="student_name" required>
         
@@ -36,39 +37,32 @@
         <label>الرغبة الأولى:</label>
         <select id="wish_1" required onchange="updateGroup(this.value)">
             <option value="">-- اختر مدرسة --</option>
-            <option>العليه ص</option>
-            <option>السماد</option>
-            <option>العمراوي ص</option>
-            <option>عزيز اباظه ص</option>
-            <option>سعد زغلول ص</option>
+            <option>العليه ص</option><option>السماد</option><option>العمراوي ص</option>
+            <option>عزيز اباظه ص</option><option>سعد زغلول ص</option>
         </select>
-
-        <label>الرغبة الثانية:</label>
-        <select id="wish_2" required><option value="">-- اختر مدرسة --</option></select>
-
-        <label>الرغبة الثالثة:</label>
-        <select id="wish_3" required><option value="">-- اختر مدرسة --</option></select>
 
         <label>المجموعة (تلقائي):</label>
         <input type="text" id="group" readonly style="background:#eee;">
 
-        <label>وجود إخوة في المدرسة؟</label>
-        <select id="siblings"><option>لا</option><option>نعم</option></select>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+        <h4 style="color: #c0392b;">المرفقات المطلوبة (صور واضحة):</h4>
 
-        <label>هل الطالب مقيد بحضانة KG2؟</label>
-        <select id="kg2"><option>لا</option><option>نعم</option></select>
+        <label>📷 صورة بطاقة ولي الأمر (الوجه):</label>
+        <input type="file" id="front_img" accept="image/*" required>
 
-        <button type="submit" class="btn-submit" id="submitBtn">إرسال الطلب الآن</button>
+        <label>📷 صورة بطاقة ولي الأمر (الظهر):</label>
+        <input type="file" id="back_img" accept="image/*" required>
+
+        <label>🏠 صورة إثبات السكن (إيصال مرافق):</label>
+        <input type="file" id="house_img" accept="image/*" required>
+
+        <button type="submit" class="btn-submit" id="submitBtn">إرسال الطلب والمرفقات</button>
     </form>
 </div>
 
 <script>
-    // تحديث خيارات المدارس والمجموعة
-    window.onload = function() {
-        const schools = document.getElementById('wish_1').innerHTML;
-        document.getElementById('wish_2').innerHTML = schools;
-        document.getElementById('wish_3').innerHTML = schools;
-    };
+    // رابط الـ Web App الجديد بتاعك
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyFHoR16anoeGTjmodwtAXRfpgB7xNxwj2OyWtRZwob6163pcqF1UFdBANCunCXSf9EBQ/exec';
 
     function updateGroup(val) {
         if(val == "العليه ص") document.getElementById('group').value = "الأولى";
@@ -77,39 +71,48 @@
         else document.getElementById('group').value = "أخرى";
     }
 
-    // إرسال البيانات للرابط بتاعك
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbwSKOJ1CQ_bcCMR2ZqBGzALCPLHvCP-g1R2VQ7sjTgYgPnj1OATg1fIcSKm81vA05p0Rw/exec';
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = error => reject(error);
+    });
 
-    document.getElementById('mainForm').onsubmit = function(e) {
+    document.getElementById('uploadForm').onsubmit = async function(e) {
         e.preventDefault();
-        document.getElementById('submitBtn').disabled = true;
-        document.getElementById('submitBtn').innerText = "جاري الإرسال...";
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerText = "جاري رفع الصور والبيانات... (يرجى الانتظار)";
 
-        const formData = {
-            name: document.getElementById('student_name').value,
-            id: document.getElementById('national_id').value,
-            area: document.getElementById('area').value,
-            w1: document.getElementById('wish_1').value,
-            w2: document.getElementById('wish_2').value,
-            w3: document.getElementById('wish_3').value,
-            group: document.getElementById('group').value,
-            siblings: document.getElementById('siblings').value,
-            kg2: document.getElementById('kg2').value
-        };
+        try {
+            const data = {
+                name: document.getElementById('student_name').value,
+                id: document.getElementById('national_id').value,
+                area: document.getElementById('area').value,
+                w1: document.getElementById('wish_1').value,
+                group: document.getElementById('group').value,
+                siblings: "لا", // قيم افتراضية
+                kg2: "لا",
+                frontBase64: await toBase64(document.getElementById('front_img').files[0]),
+                frontType: document.getElementById('front_img').files[0].type,
+                backBase64: await toBase64(document.getElementById('back_img').files[0]),
+                backType: document.getElementById('back_img').files[0].type,
+                houseBase64: await toBase64(document.getElementById('house_img').files[0]),
+                houseType: document.getElementById('house_img').files[0].type
+            };
 
-        fetch(scriptURL, {
-            method: 'POST',
-            mode: 'no-cors', // لضمان الإرسال السريع لـ Google
-            body: JSON.stringify(formData)
-        })
-        .then(() => {
-            alert('تم استلام طلبك في منظومة الراوي بنجاح!');
+            await fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+
+            alert('تم استلام طلبك وصورك بنجاح في منظومة الراوي!');
             location.reload();
-        })
-        .catch(error => {
-            alert('حدث خطأ، تأكد من اتصال الإنترنت!');
-            document.getElementById('submitBtn').disabled = false;
-        });
+        } catch (error) {
+            alert('حدث خطأ! تأكد من حجم الصور وصلاحية الإنترنت.');
+            btn.disabled = false;
+            btn.innerText = "إرسال الطلب والمرفقات";
+        }
     };
 </script>
 </body>
