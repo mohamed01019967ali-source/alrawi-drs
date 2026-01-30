@@ -3,117 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منظومة الراوي | تقديم إلكتروني</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>استمارة تقديم - منظومة الراوي الرقمية</title>
     <style>
-        body { font-family: 'Tajawal', sans-serif; background: linear-gradient(135deg, #f8fafc 0%, #d1d5db 100%); }
-        .input-focus:focus { border-color: #1e3a8a; box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.1); }
+        :root { --primary: #2c3e50; --secondary: #27ae60; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; text-align: right; }
+        .container { max-width: 700px; background: white; margin: auto; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 3px solid var(--secondary); margin-bottom: 30px; padding-bottom: 15px; }
+        .form-section { margin-bottom: 25px; padding: 20px; border: 1px solid #eee; border-radius: 10px; background: #fafafa; }
+        label { display: block; font-weight: bold; margin-bottom: 10px; color: var(--primary); }
+        input[type="text"], select, input[type="file"] { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; margin-bottom: 10px; }
+        .radio-group { display: flex; gap: 30px; margin: 10px 0; }
+        .btn-submit { background-color: var(--secondary); color: white; padding: 18px; border: none; border-radius: 8px; width: 100%; font-size: 20px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-submit:hover { background-color: #219150; box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4); }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body>
 
-    <div class="max-w-xl w-full bg-white rounded-[2.5rem] shadow-2xl p-8 md:p-12 border-t-[10px] border-blue-900 animate-fadeIn">
-        
-        <div class="text-center mb-10">
-            <h1 class="text-3xl font-[900] text-blue-900 uppercase">منظومة الراوي الرقمية</h1>
-            <p class="text-emerald-600 font-bold mt-2">استمارة التقديم الإلكتروني الموحدة</p>
-            <div class="h-1 w-24 bg-blue-900 mx-auto mt-4 rounded-full"></div>
-        </div>
-
-        <form id="publicSurveyForm" class="space-y-6">
-            
-            <div class="space-y-4">
-                <h3 class="font-bold text-blue-900 border-r-4 border-emerald-500 pr-3">بيانات الطالب</h3>
-                <input type="text" id="sName" placeholder="الاسم رباعي من شهادة الميلاد" required 
-                       class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none input-focus">
-                
-                <input type="text" id="sID" placeholder="الرقم القومي للطالب (14 رقم)" required maxlength="14"
-                       class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none input-focus font-mono text-center">
-            </div>
-
-            <div class="space-y-4">
-                <h3 class="font-bold text-blue-900 border-r-4 border-emerald-500 pr-3">بيانات ولي الأمر والتواصل</h3>
-                <input type="tel" id="pPhone" placeholder="رقم هاتف ولي الأمر (واتساب)" required 
-                       class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none input-focus font-mono">
-                
-                <input type="text" id="fJob" placeholder="وظيفة الأب / ولي الأمر" required
-                       class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none input-focus">
-            </div>
-
-            <div class="space-y-4">
-                <h3 class="font-bold text-blue-900 border-r-4 border-emerald-500 pr-3">معلومات إضافية</h3>
-                <select id="hStatus" class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none input-focus">
-                    <option value="سليم">الحالة الصحية: سليم</option>
-                    <option value="مزمن">يعاني من حالة خاصة</option>
-                </select>
-                
-                <div class="grid grid-cols-2 gap-3">
-                    <label class="bg-gray-50 p-3 rounded-xl flex items-center gap-2 cursor-pointer border border-transparent hover:border-blue-900">
-                        <input type="checkbox" name="skill" value="رسم" class="accent-blue-900"> رسم
-                    </label>
-                    <label class="bg-gray-50 p-3 rounded-xl flex items-center gap-2 cursor-pointer border border-transparent hover:border-blue-900">
-                        <input type="checkbox" name="skill" value="برمجة" class="accent-blue-900"> برمجة
-                    </label>
-                </div>
-            </div>
-
-            <button type="submit" id="submitBtn" class="w-full bg-blue-900 text-white font-black py-5 rounded-[2rem] shadow-lg hover:bg-emerald-600 transition-all flex justify-center items-center gap-2 group">
-                <span id="btnText">إرسال الطلب الآن</span>
-                <svg id="arrowIcon" class="w-5 h-5 group-hover:translate-x-[-5px] transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                <div id="loader" class="hidden animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
-            </button>
-        </form>
+<div class="container">
+    <div class="header">
+        <h2 style="color: var(--primary); margin:0;">منظومة الراوي الرقمية</h2>
+        <p style="color: #666;">تسجيل رغبات الطلاب الجدد 2026</p>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    <form id="mainSurveyForm">
+        <div class="form-section">
+            <label>1. اسم الطالب رباعي:</label>
+            <input type="text" id="student_name" placeholder="أدخل الاسم كاملاً" required>
+            
+            <label>2. الرقم القومي للطالب (14 رقم):</label>
+            <input type="text" id="national_id" maxlength="14" required>
+        </div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAREfWSSXUefzNBHw5RPhb-TBL3vl3C1Z8",
-            authDomain: "al-rawi-drs.firebaseapp.com",
-            projectId: "al-rawi-drs",
-            storageBucket: "al-rawi-drs.firebasestorage.app",
-            messagingSenderId: "1090201098998",
-            appId: "1:1090201098998:web:951f39d6e77c855c762ad7"
-        };
+        <div class="form-section">
+            <label>3. اسم المنطقة السكنية:</label>
+            <input type="text" id="residential_area" required>
+            
+            <label>10. ارفع صورة "إثبات السكن":</label>
+            <input type="file" id="residence_proof" accept="image/*" required>
+        </div>
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        <div class="form-section">
+            <label>4. الرغبة الأولى (أساسية للتوزيع):</label>
+            <select class="school-list" id="wish_1" required onchange="assignGroup(this.value)">
+                <option value="">-- اختر المدرسة --</option>
+                <optgroup label="المجموعة الأولى">
+                    <option>العليه ص</option><option>العليه م</option><option>عبده مبروك</option><option>شيبوب ص</option><option>شيبوب م</option><option>الزعيم السادات ص</option><option>الزعيم السادات م</option><option>ابن النفيس ص</option><option>ابن النفيس م</option>
+                </optgroup>
+                <optgroup label="المجموعة الثانية">
+                    <option>السماد</option><option>عاطف السادات</option><option>الرحمانه</option><option>الاصلاح</option><option>حسن بغدادي</option><option>عبد العال ابو الغيط</option><option>متولي الشعراوي</option>
+                </optgroup>
+                <optgroup label="المجموعة الثالثة">
+                    <option>المنشيه البحريه</option><option>العمراوي ص</option><option>العمراوي م</option><option>عطيه الزعيري1 ص</option><option>عطيه الزعيري1 م</option><option>عطيه الزعيري 2 ص</option><option>عطيه الزعيري 2 م</option>
+                </optgroup>
+                <optgroup label="المجموعة الرابعة">
+                    <option>عزيز اباظه ص</option><option>عزيز اباظه م</option><option>الشيماء ص</option><option>الشيماء م</option><option>حسن فتحي ص</option><option>حسن فتحي م</option>
+                </optgroup>
+                <optgroup label="المجموعة الخامسة">
+                    <option>سعد زغلول ص</option><option>سعد زغلول م</option><option>النبوي المهندس ص</option><option>النبوي المهندس م</option><option>النبوي المهندس الجديده</option><option>الزهور 1</option><option>الزهور 2</option><option>فهمي جبر ص</option><option>فهمي جبر م</option><option>المندره القبليه ص</option><option>المندره القبليه م</option>
+                </optgroup>
+            </select>
 
-        document.getElementById('publicSurveyForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('submitBtn');
-            const loader = document.getElementById('loader');
-            const arrow = document.getElementById('arrowIcon');
-            const skills = Array.from(document.querySelectorAll('input[name="skill"]:checked')).map(el => el.value);
+            <label>5. الرغبة الثانية:</label>
+            <select class="school-list" id="wish_2" required>
+                <option value="">-- اختر المدرسة --</option>
+            </select>
 
-            btn.disabled = true;
-            loader.classList.remove('hidden');
-            arrow.classList.add('hidden');
+            <label>6. الرغبة الثالثة:</label>
+            <select class="school-list" id="wish_3" required>
+                <option value="">-- اختر المدرسة --</option>
+            </select>
+        </div>
 
-            try {
-                await addDoc(collection(db, "responses"), {
-                    student_name: document.getElementById('sName').value,
-                    national_id: document.getElementById('sID').value,
-                    phone: document.getElementById('pPhone').value,
-                    father_job: document.getElementById('fJob').value,
-                    health: document.getElementById('hStatus').value,
-                    skills: skills,
-                    status: "Pending", // لازم الموظف يوافق عليه بعدين
-                    created_at: new Date()
-                });
+        <div class="form-section">
+            <label>7. صورة ولي الأمر (الوجهين):</label>
+            <input type="file" id="parent_id_img" accept="image/*" required>
+        </div>
 
-                // توجيه لصفحة الشكر اللي بتقفل تلقائي
-                window.location.href = "thank-you.html";
-            } catch (err) {
-                alert("حدث خطأ، تأكد من الاتصال بالإنترنت");
-                btn.disabled = false;
-                loader.classList.add('hidden');
-                arrow.classList.remove('hidden');
-            }
-        });
-    </script>
+        <div class="form-section">
+            <label>8. هل يوجد أخ/أخت في نفس المدرسة؟</label>
+            <div class="radio-group">
+                <label><input type="radio" name="siblings" value="نعم"> نعم</label>
+                <label><input type="radio" name="siblings" value="لا" checked> لا</label>
+            </div>
+
+            <label style="margin-top:15px;">9. هل الطالب مقيد حالياً بحضانة (KG2)؟</label>
+            <div class="radio-group">
+                <label><input type="radio" name="kg2" value="نعم"> نعم</label>
+                <label><input type="radio" name="kg2" value="لا" checked> لا</label>
+            </div>
+        </div>
+
+        <input type="hidden" id="assigned_group">
+        <button type="submit" class="btn-submit">إرسال الطلب رسمياً</button>
+    </form>
+</div>
+
+<script>
+    // كود لضمان تكرار المدارس في كل القوائم فور فتح الصفحة
+    const schoolContent = document.getElementById('wish_1').innerHTML;
+    document.getElementById('wish_2').innerHTML = schoolContent;
+    document.getElementById('wish_3').innerHTML = schoolContent;
+
+    function assignGroup(school) {
+        const g1 = ["العليه ص", "العليه م", "عبده مبروك", "شيبوب ص", "شيبوب م", "الزعيم السادات ص", "الزعيم السادات م", "ابن النفيس ص", "ابن النفيس م"];
+        const g2 = ["السماد", "عاطف السادات", "الرحمانه", "الاصلاح", "حسن بغدادي", "عبد العال ابو الغيط", "متولي الشعراوي"];
+        const g3 = ["المنشيه البحريه", "العمراوي ص", "العمراوي م", "عطيه الزعيري1 ص", "عطيه الزعيري1 م", "عطيه الزعيري 2 ص", "عطيه الزعيري 2 م"];
+        const g4 = ["عزيز اباظه ص", "عزيز اباظه م", "الشيماء ص", "الشيماء م", "حسن فتحي ص", "حسن فتحي م"];
+        
+        let group = "الخامسة";
+        if(g1.includes(school)) group = "الأولى";
+        else if(g2.includes(school)) group = "الثانية";
+        else if(g3.includes(school)) group = "الثالثة";
+        else if(g4.includes(school)) group = "الرابعة";
+        
+        document.getElementById('assigned_group').value = group;
+        console.log("المجموعة المحددة: " + group);
+    }
+</script>
+
 </body>
 </html>
