@@ -13,7 +13,6 @@
         input, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; margin-bottom: 15px; }
         .btn-submit { background-color: var(--secondary); color: white; padding: 15px; border: none; border-radius: 8px; width: 100%; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; }
         .btn-submit:disabled { background-color: #95a5a6; cursor: not-allowed; }
-        .file-label { background: #eef2f3; padding: 10px; border: 1px dashed #7f8c8d; border-radius: 6px; display: block; text-align: center; cursor: pointer; margin-bottom: 15px; }
     </style>
 </head>
 <body>
@@ -38,7 +37,6 @@
         <select id="wish_1" required onchange="updateGroup(this.value)">
             <option value="">-- اختر مدرسة --</option>
             <option>العليه ص</option><option>السماد</option><option>العمراوي ص</option>
-            <option>عزيز اباظه ص</option><option>سعد زغلول ص</option>
         </select>
 
         <label>المجموعة (تلقائي):</label>
@@ -53,7 +51,7 @@
         <label>📷 صورة بطاقة ولي الأمر (الظهر):</label>
         <input type="file" id="back_img" accept="image/*" required>
 
-        <label>🏠 صورة إثبات السكن (إيصال مرافق):</label>
+        <label>🏠 صورة إثبات السكن:</label>
         <input type="file" id="house_img" accept="image/*" required>
 
         <button type="submit" class="btn-submit" id="submitBtn">إرسال الطلب والمرفقات</button>
@@ -61,14 +59,12 @@
 </div>
 
 <script>
-    // رابط الـ Web App الجديد بتاعك
     const scriptURL = 'https://script.google.com/macros/s/AKfycbyFHoR16anoeGTjmodwtAXRfpgB7xNxwj2OyWtRZwob6163pcqF1UFdBANCunCXSf9EBQ/exec';
 
     function updateGroup(val) {
         if(val == "العليه ص") document.getElementById('group').value = "الأولى";
         else if(val == "السماد") document.getElementById('group').value = "الثانية";
         else if(val == "العمراوي ص") document.getElementById('group').value = "الثالثة";
-        else document.getElementById('group').value = "أخرى";
     }
 
     const toBase64 = file => new Promise((resolve, reject) => {
@@ -82,7 +78,7 @@
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
         btn.disabled = true;
-        btn.innerText = "جاري رفع الصور والبيانات... (يرجى الانتظار)";
+        btn.innerText = "جاري رفع الصور... انتظر ثواني";
 
         try {
             const data = {
@@ -91,8 +87,6 @@
                 area: document.getElementById('area').value,
                 w1: document.getElementById('wish_1').value,
                 group: document.getElementById('group').value,
-                siblings: "لا", // قيم افتراضية
-                kg2: "لا",
                 frontBase64: await toBase64(document.getElementById('front_img').files[0]),
                 frontType: document.getElementById('front_img').files[0].type,
                 backBase64: await toBase64(document.getElementById('back_img').files[0]),
@@ -101,17 +95,12 @@
                 houseType: document.getElementById('house_img').files[0].type
             };
 
-            await fetch(scriptURL, {
-                method: 'POST',
-                body: JSON.stringify(data)
-            });
-
-            alert('تم استلام طلبك وصورك بنجاح في منظومة الراوي!');
+            await fetch(scriptURL, { method: 'POST', body: JSON.stringify(data) });
+            alert('تم استلام طلبك بنجاح!');
             location.reload();
         } catch (error) {
-            alert('حدث خطأ! تأكد من حجم الصور وصلاحية الإنترنت.');
+            alert('حدث خطأ! تأكد من سرعة الإنترنت');
             btn.disabled = false;
-            btn.innerText = "إرسال الطلب والمرفقات";
         }
     };
 </script>
