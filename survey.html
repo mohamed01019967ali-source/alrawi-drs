@@ -6,78 +6,42 @@
     <title>منظومة الراوي الرقمية 2026</title>
     <style>
         :root { --primary: #2c3e50; --secondary: #27ae60; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; text-align: right; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); padding: 20px; text-align: right; }
         .container { max-width: 600px; background: white; margin: auto; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .header { text-align: center; border-bottom: 3px solid var(--secondary); margin-bottom: 30px; padding-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 8px; color: var(--primary); }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; margin-bottom: 15px; }
-        .btn-submit { background-color: var(--secondary); color: white; padding: 15px; border: none; border-radius: 8px; width: 100%; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-submit:disabled { background-color: #95a5a6; cursor: not-allowed; }
-        hr { border: 0; border-top: 1px solid #eee; margin: 20px 0; }
-        .file-section { background: #fffde7; padding: 15px; border-radius: 8px; border: 1px solid #ffd54f; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; }
+        .btn-submit { background-color: var(--secondary); color: white; padding: 15px; border: none; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-
 <div class="container">
-    <div class="header">
-        <h2 style="color: var(--primary); margin:0;">منظومة الراوي الرقمية</h2>
-        <p style="color: #666;">تسجيل رغبات الطلاب الجدد 2026</p>
-    </div>
-
+    <h2>منظومة الراوي الرقمية</h2>
     <form id="uploadForm">
         <label>اسم الطالب رباعي:</label>
         <input type="text" id="student_name" required>
-        
-        <label>الرقم القومي للطالب (14 رقم):</label>
+        <label>الرقم القومي (14 رقم):</label>
         <input type="text" id="national_id" maxlength="14" required>
-
-        <label>المنطقة السكنية:</label>
+        <label>المنطقة:</label>
         <input type="text" id="area" required>
-
         <label>الرغبة الأولى:</label>
-        <select id="wish_1" required onchange="updateGroup(this.value)">
+        <select id="wish_1" required>
             <option value="">-- اختر مدرسة --</option>
-            <option>العليه ص</option><option>العليه م</option>
-            <option>السماد</option><option>عاطف السادات</option>
-            <option>العمراوي ص</option><option>العمراوي م</option>
-            <option>عزيز اباظه ص</option><option>سعد زغلول ص</option>
+            <option>العليه ص</option><option>السماد</option><option>العمراوي ص</option>
         </select>
-
-        <label>المجموعة (تلقائي):</label>
-        <input type="text" id="group" readonly style="background:#eee;">
-
-        <div class="file-section">
-            <h4 style="margin-top:0; color: #f57f17;">المرفقات المطلوبة (صور واضحة):</h4>
-            
-            <label>📷 صورة بطاقة ولي الأمر (الوجه):</label>
-            <input type="file" id="front_img" accept="image/*" required>
-
-            <label>📷 صورة بطاقة ولي الأمر (الظهر):</label>
-            <input type="file" id="back_img" accept="image/*" required>
-
-            <label>🏠 صورة إثبات السكن (إيصال مرافق):</label>
-            <input type="file" id="house_img" accept="image/*" required>
-        </div>
-
-        <button type="submit" class="btn-submit" id="submitBtn">إرسال الطلب والمرفقات</button>
+        <hr>
+        <label>📷 صورة وجه البطاقة:</label>
+        <input type="file" id="front_img" accept="image/*" required>
+        <label>📷 صورة ظهر البطاقة:</label>
+        <input type="file" id="back_img" accept="image/*" required>
+        <label>🏠 صورة إثبات السكن:</label>
+        <input type="file" id="house_img" accept="image/*" required>
+        
+        <button type="submit" class="btn-submit" id="submitBtn">إرسال الطلب</button>
     </form>
 </div>
 
 <script>
     // الرابط الجديد اللي أنت بعته
     const scriptURL = 'https://script.google.com/macros/s/AKfycbwKZQEnOTo6WaY0LKmM-NYd7yiQKCvfZhVjhe1h6iU-JEgpeaNGGZ26VQCwtOlb-3X5EA/exec';
-
-    function updateGroup(val) {
-        const g1 = ["العليه ص", "العليه م"];
-        const g2 = ["السماد", "عاطف السادات"];
-        const g3 = ["العمراوي ص", "العمراوي م"];
-        
-        if(g1.includes(val)) document.getElementById('group').value = "الأولى";
-        else if(g2.includes(val)) document.getElementById('group').value = "الثانية";
-        else if(g3.includes(val)) document.getElementById('group').value = "الثالثة";
-        else document.getElementById('group').value = "أخرى";
-    }
 
     const toBase64 = file => new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -89,8 +53,7 @@
     document.getElementById('uploadForm').onsubmit = async function(e) {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
-        btn.disabled = true;
-        btn.innerText = "جاري رفع البيانات والصور... انتظر قليلاً";
+        btn.disabled = true; btn.innerText = "جاري الإرسال...";
 
         try {
             const data = {
@@ -98,11 +61,7 @@
                 id: document.getElementById('national_id').value,
                 area: document.getElementById('area').value,
                 w1: document.getElementById('wish_1').value,
-                w2: "-", // رغبات إضافية
-                w3: "-",
-                group: document.getElementById('group').value,
-                siblings: "لا",
-                kg2: "لا",
+                group: "تلقائي",
                 frontBase64: await toBase64(document.getElementById('front_img').files[0]),
                 frontType: document.getElementById('front_img').files[0].type,
                 backBase64: await toBase64(document.getElementById('back_img').files[0]),
@@ -111,17 +70,12 @@
                 houseType: document.getElementById('house_img').files[0].type
             };
 
-            await fetch(scriptURL, {
-                method: 'POST',
-                body: JSON.stringify(data)
-            });
-
-            alert('تم استلام طلبك وصورك بنجاح في منظومة الراوي!');
+            await fetch(scriptURL, { method: 'POST', body: JSON.stringify(data) });
+            alert('تم استلام طلبك وصورك بنجاح!');
             location.reload();
         } catch (error) {
-            alert('حدث خطأ! تأكد من اتصالك بالإنترنت وحجم الصور.');
+            alert('حدث خطأ! تأكد من اسم الورقة في الإكسيل Sheet1');
             btn.disabled = false;
-            btn.innerText = "إرسال الطلب والمرفقات";
         }
     };
 </script>
